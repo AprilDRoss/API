@@ -1,0 +1,24 @@
+{
+  "name": "activitytracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "April",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^3.5.0",
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3",
+    "express-validator": "^3.2.0",
+    "mongo": "^0.1.0",
+    "mongoose": "^4.10.8",
+    "mustache": "^2.3.0",
+    "mustache-express": "^1.2.5",
+    "passport": "^0.3.2",
+    "passport-http": "^0.3.0",
+    "path": "^0.12.7"
+  }
+}
