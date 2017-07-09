@@ -1,9 +1,7 @@
 const express = require('express');
 const bodyParser = require("body-parser");
 const mustacheExpress = require('mustache-express');
-const passport = require('passport');
-const BasicStrategy = require('passport-http').BasicStrategy;
-//const users = require('./users.json');
+
 const app = express();
 const routes = require('./routes/routes.js')
 
