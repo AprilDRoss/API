@@ -31,6 +31,7 @@ const activitySchema = new Schema({
   name : {type:String, required:true},
   date : Date,
   tracking: String
+
 });
 
 const userSchema = new Schema({
@@ -62,21 +63,6 @@ router.get('/api/activities', function(req, res){
   });
 });
 
-// router.get('/api/activities/_id', function(req, res){
-//   activities.findById(req.params._id).then(function(allActivities){
-//     if(allActivities){
-//       res.setHeader('Content-Type','application/json');
-//       res.status(200).json(allActivities);
-//     }else{
-//       res.send("No activities found.")
-//     }
-//   }).catch(function(err){
-//     res.status(400).send("Bad request. Try again.")
-//   });
-// });
-
-
-
 router.post('/api/activities', function(req, res){
   activities.create(req.body).then(function(newActivity){
     if (newActivity){
@@ -90,78 +76,62 @@ router.post('/api/activities', function(req, res){
   })
 });
 
-// router.get('/api/activities/:id', function(req, res){
-//   activities.findById(req.params.id).then(function(activities){
-//     if (activities){
-//       res.setHeader('Content-Type','application.json');
-//       res.status(200).json(activities);
+
+router.get('/api/activities/:_id', function(req, res){
+  activities.findById(req.params._id).then(function(newActivity){
+    if (newActivity){
+      res.setHeader('Content-Type','application/json');
+      res.status(201).json(newActivity);
+    }else{
+      res.status(403).send("No activity found, sorry");
+    }
+  }).catch(function(err){
+    res.status(400).send("Bad request. Please try again.")
+  })
+});
+
+//*********    PUT              doesnt work*************
+// router.put('/api/activities/:_id', function(req, res){
+//   activities.updateOne({id:req.params._id},
+//   {push: {name:req.body.name}}).then(function(newActivity){
+//     if(newActivity){
+//       res.setHeader('Content-Type', 'application/json');
+//       res.status(200).json(newActivity);
+//     } else {
+//       res.status(403).send("No activity found...");
+//     }
+//   }).catch(function(err) {
+//     res.status(400).send("Bad request. Please try again.");
+//   });
+
+// });
+//
+router.delete('/api/activities/:_id', function(req, res){
+  activities.deleteOne(req.params._id).then(function(newActivity){
+    if(newActivity){
+      res.status(200).send("Successfully removed activity.");
+    } else {
+      res.status(404).send("Activity not found.");
+    }
+  }).catch(function(err) {
+    res.status(400).send("Bad request. Please try again.");
+  })
+});
+//
+// router.post('/api/activities/:_id/tracking', function(req, res){
+//   activities.updateOne({"id":req.params._id},
+//       {$push: {"date":req.body},{"tracking":req.body}}).then(function(newActivity){
+//     if (newActivity){
+//       res.setHeader('Content-Type','application/json');
+//       res.status(201).json(newActivity);
 //     }else{
-//       res.status(404).send("Activity not found.")
+//       res.status(403).send("No activity found, sorry");
 //     }
 //   }).catch(function(err){
 //     res.status(400).send("Bad request. Please try again.")
-//   });
-// });
-
-//******this one works for sure*********
-router.get('/api/activities/:_id', function(req, res){
-  activities.findById(req.params._id, function(err, activities){
-    if (err){
-      throw err;
-    }
-    res.json(activities)
-  });
-
-});
-
-// router.put('/api/:id', function(req, res){
-//   activities.updateOne({id:req.params.id},{
-//     name: req.body.name,
-//     date: Date.now,
-//     tracking: req.body.tracking
-//   }).then(function(activity){
-//     if(activity){
-//       res.setHeader('Content-Type', 'application/json');
-//       res.status(200).json(todo);
-//     } else {
-//       res.status(403).send("No activity found...");
-//     }
-//   }).catch(function(err) {
-//     res.status(400).send("Bad request. Please try again.");
-//   });
-//
-// });
-//
-// router.delete('/api/:id', function(req, res){
-//   activities.deleteOne({
-//     id: req.params.id
-//   }).then(function(activity){
-//     if(activity){
-//       res.status(200).send("Successfully removed activity.");
-//     } else {
-//       res.status(404).send("Activity not found.");
-//     }
-//   }).catch(function(err) {
-//     res.status(400).send("Bad request. Please try again.");
 //   })
 // });
-//
-// router.post('/api/:id/stats', function(req, res){
-//   activities.updateOne({id:req.params.id},{
-//     date: req.body.date,
-//     tracking: req.body.tracking
-//   }).then(function(activity){
-//     if(activity){
-//       res.setHeader('Content-Type', 'application/json');
-//       res.status(200).json(todo);
-//     } else {
-//       res.status(403).send("No activity found...");
-//     }
-//   }).catch(function(err) {
-//     res.status(400).send("Bad request. Please try again.");
-//   });
-// });
-//
+
 // router.delete('/api/stats/:id', function(req, res){
 // activities.deleteOne({id: req.params.id, date:req.params.date})
 //  .then(function(activity){
