@@ -135,23 +135,25 @@ router.delete('/api/activities/:id', function(req, res){
     res.status(400).send("Bad request. Please try again.");
   })
 });
-//
-// router.post('/api/activities/:_id/tracking', function(req, res){
-//   activities.updateOne({"id":req.params._id},
-//       {$push: {"date":req.body},{"tracking":req.body}}).then(function(newActivity){
-//     if (newActivity){
-//       res.setHeader('Content-Type','application/json');
-//       res.status(201).json(newActivity);
-//     }else{
-//       res.status(403).send("No activity found, sorry");
-//     }
-//   }).catch(function(err){
-//     res.status(400).send("Bad request. Please try again.")
-//   })
-// });
+
+//POST request to add stats and overide logged data
+router.post('/api/activities/:id/stats', function(req, res){
+  activities.findOneandUpdate({"id":req.params.id},
+       {$set:{"date":req.body.date, "logged":req.body.logged}}).then(function(newActivity){
+    if (newActivity){
+      res.setHeader('Content-Type','application/json');
+      res.status(201).json(newActivity);
+    }else{
+      res.status(403).send("No activity found, sorry");
+    }
+  }).catch(function(err){
+    res.status(400).send("Bad request. Please try again.")
+  })
+});
+
 
 // router.delete('/api/stats/:id', function(req, res){
-// activities.deleteOne({id: req.params.id, date:req.params.date})
+// activities.deleteOne({"id": req.params.id, "date":req.params.date})
 //  .then(function(activity){
 //   if(activity){
 //     res.status(200).send("Successfully removed activity.");
