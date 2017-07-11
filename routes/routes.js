@@ -9,6 +9,10 @@ const passport = require('passport');
 const BasicStrategy = require('passport-http').BasicStrategy;
 const assert = require('assert');
 
+
+//*****Fix this after you fix the models folder*******
+//const models = require("../models/activities.js");
+
 //mongoose connection
  mongoose.Promise = require("bluebird");
  mongoose.connect("mongodb://localhost:27017/activitiesTracker");
@@ -32,7 +36,7 @@ const activitySchema = new Schema({
   records: [{
     record_id: Number,
     date: [String],
-    log: [String],
+    logged: [String],
   }],
 });
 
@@ -46,12 +50,14 @@ const userSchema = new Schema({
 const activities = mongoose.model('activities', activitySchema);
 const users = mongoose.model('users', userSchema);
 
+//authentication
 router.get('/',
   passport.authenticate('basic', { session: false }),
   function(req, res) {
     res.json({ username: req.user.username, password: req.user.password });
   });
 
+//Get all activities
 router.get('/api/activities', function(req, res){
   activities.find({}).then(function(allActivities){
     if(allActivities){
@@ -65,62 +71,70 @@ router.get('/api/activities', function(req, res){
   });
 });
 
-// router.post('/api/activities', function(req, res){
-//   activities.create(req.body).then(function(newActivity){
-//     if (newActivity){
-//       res.setHeader('Content-Type','application/json');
-//       res.status(201).json(newActivity);
-//     }else{
-//       res.status(403).send("No activity found, sorry");
-//     }
-//   }).catch(function(err){
-//     res.status(400).send("Bad request. Please try again.")
-//   })
-// });
+//POST a new activity
+router.post('/api/activities', function(req, res){
+  let activity = ({
+    id:req.body.id,
+    url:"//localhost:8080/api/activities/" + req.body.id,
+    records: [{
+      record_id: req.body.record_id,
+      date: req.body.date,
+      logged: req.body.logged
+    }]
+  });
+  activities.create(activity).then(function(newActivity){
+    if (newActivity){
+      res.setHeader('Content-Type','application/json');
+      res.status(201).json(newActivity);
+    }else{
+      res.status(403).send("No activity found, sorry");
+    }
+  }).catch(function(err){
+    res.status(400).send("Bad request. Please try again.")
+  })
+});
+
+//GET activites by id (name)
+router.get('/api/activities/:id', function(req, res){
+  activities.findOne({"id":req.params.id}).then(function(newActivity){
+    if (newActivity){
+      res.setHeader('Content-Type','application/json');
+      res.status(201).json(newActivity);
+    }else{
+      res.status(403).send("No activity found, sorry");
+    }
+  }).catch(function(err){
+    res.status(400).send("Bad request. Please try again.")
+  })
+});
+
+//PUT to update a name
+router.put('/api/activities/:id', function(req, res){
+  activities.updateOne({"id":req.params.id},{$set:{"id":req.body.id}}).then(function(newActivity){
+    if (newActivity){
+      res.setHeader('Content-Type','application/json');
+      res.status(201).json(newActivity);
+    }else{
+      res.status(403).send("No activity found, sorry");
+    }
+  }).catch(function(err){
+    res.status(400).send("Bad request. Please try again.")
+  })
+});
+
 //
-//
-// router.get('/api/activities/:_id', function(req, res){
-//   activities.findById(req.params._id).then(function(newActivity){
-//     if (newActivity){
-//       res.setHeader('Content-Type','application/json');
-//       res.status(201).json(newActivity);
-//     }else{
-//       res.status(403).send("No activity found, sorry");
-//     }
-//   }).catch(function(err){
-//     res.status(400).send("Bad request. Please try again.")
-//   })
-// });
-//
-// //*********    PUT *************
-//
-// router.put('/api/activities/:_id', function(req, res){
-//   activities.updateOne({id: req.params.id},{name:req.body.name}).then(function(newActivity){
-//     if (newActivity){
-//       res.setHeader('Content-Type','application/json');
-//       res.status(201).json(newActivity);
-//     }else{
-//       res.status(403).send("No activity found, sorry");
-//     }
-//   }).catch(function(err){
-//     res.status(400).send("Bad request. Please try again.")
-//   })
-// });
-//
-//
-//
-//
-// router.delete('/api/activities/:_id', function(req, res){
-//   activities.deleteOne(req.params._id).then(function(newActivity){
-//     if(newActivity){
-//       res.status(200).send("Successfully removed activity.");
-//     } else {
-//       res.status(404).send("Activity not found.");
-//     }
-//   }).catch(function(err) {
-//     res.status(400).send("Bad request. Please try again.");
-//   })
-// });
+//Delete an activity
+router.delete('/api/activities/:id', function(req, res){
+  activities.deleteOne({"id":req.params.id}).then(function(newActivity){
+    if(newActivity){
+      res.status(200).send("Successfully removed activity.");
+    } else {
+      res.status(404).send("Activity not found.");
+    }
+  }).catch(function(err) {
+    res.status(400).send("Bad request. Please try again.");
+  })
+});
 //
 // router.post('/api/activities/:_id/tracking', function(req, res){
 //   activities.updateOne({"id":req.params._id},
