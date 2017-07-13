@@ -8,9 +8,9 @@ const activitySchema = new Schema({
   id: {type:String, required:true},
   url: String,
   records: [{
-    record_id: Number,
-    date: [String],
-    log: [String],
+    recordId: {type:Number, required:true},
+    date: String,
+    logged: String,
   }],
 });
 

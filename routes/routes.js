@@ -14,7 +14,7 @@ const assert = require('assert');
 
 
 //*****Fix this after you fix the models folder*******
-//const models = require("../models/activities.js");
+const models = require("../models/activities.js");
 
 //mongoose connection
  mongoose.Promise = require("bluebird");
@@ -23,7 +23,7 @@ const assert = require('assert');
 
 // passport.use(new BasicStrategy(
 //   function(username, password, done) {
-//     users.findOne({ "username":username, "password":password }, function (err, user) {
+//     models.users.findOne({ "username":username, "password":password }, function (err, user) {
 //       if (err) { return done(err); }
 //       if (!user) { return done(null, false); }
 //       if (users.password! == password){ return done(null, false); }
@@ -32,30 +32,16 @@ const assert = require('assert');
 //   }
 // ));
 
-//mongoose Schema for every activity
-const activitySchema = new Schema({
-  id: {type:String, required:true},
-  url: String,
-  records: [{
-    recordId: {type:Number, required:true},
-    date: String,
-    logged: String,
-  }],
-});
-
-const userSchema = new Schema({
-  username: String,
-  password: String
-});
-
-//Activity is the collection name; mongoose will lowercase and pluralize it
-const activities = mongoose.model('activities', activitySchema);
-const users = mongoose.model('users', userSchema);
-
+//applying authentication on the root
+// router.get('/api',
+//   passport.authenticate('basic', { session: false }),
+//   function(req, res) {
+//     res.json(req.user);
+//   });
 
 //Get all activities
 router.get('/api/activities', function(req, res){
-  activities.find({}).then(function(allActivities){
+  models.activities.find({}).then(function(allActivities){
     if(allActivities){
       res.setHeader('Content-Type','application/json');
       res.status(200).json(allActivities);
@@ -78,7 +64,7 @@ router.post('/api/activities', function(req, res){
       logged: req.body.logged
     }]
   });
-  activities.create(activity).then(function(newActivity){
+  models.activities.create(activity).then(function(newActivity){
     if (newActivity){
       res.setHeader('Content-Type','application/json');
       res.status(201).json(newActivity);
@@ -90,9 +76,9 @@ router.post('/api/activities', function(req, res){
   })
 });
 
-//GET activites by id (name)
+//GET activites by id (activity name)
 router.get('/api/activities/:id', function(req, res){
-  activities.findOne({id:req.params.id}).then(function(newActivity){
+  models.activities.findOne({id:req.params.id}).then(function(newActivity){
     if (newActivity){
       res.setHeader('Content-Type','application/json');
       res.status(201).json(newActivity);
@@ -106,7 +92,7 @@ router.get('/api/activities/:id', function(req, res){
 
 //PUT to update a name
 router.put('/api/activities/:id', function(req, res){
-  activities.updateOne({id:req.params.id},{$set:{"id":req.body.id}}).then(function(newActivity){
+  models.activities.updateOne({id:req.params.id},{$set:{"id":req.body.id}}).then(function(newActivity){
     if (newActivity){
       res.setHeader('Content-Type','application/json');
       res.status(201).json(newActivity);
@@ -118,10 +104,9 @@ router.put('/api/activities/:id', function(req, res){
   })
 });
 
-//
 //Delete an activity
 router.delete('/api/activities/:id', function(req, res){
-  activities.deleteOne({id:req.params.id}).then(function(newActivity){
+  models.activities.deleteOne({id:req.params.id}).then(function(newActivity){
     if(newActivity){
       res.status(200).send("Successfully removed activity.");
     } else {
@@ -146,8 +131,8 @@ router.delete('/api/activities/:id', function(req, res){
 // });
 
 //POST request to add stats and overide logged data
-router.post('/api/activities/:id/:records', function(req, res){
-  activities.updateMany({id:req.params.id, "records.recordId":req.params.recordId},
+router.post('/api/activities/:id/:recordsId', function(req, res){
+  models.activities.updateMany({id:req.params.id, "records.recordId":req.params.recordId},
        {$set:{"date":req.body.date}},
        {$set:{"logged":req.body.logged}}).then(function(newActivity){
     if (newActivity){
@@ -163,7 +148,7 @@ router.post('/api/activities/:id/:records', function(req, res){
 
 
 router.delete('/api/activities/:id/:stats/:recordId', function(req, res){
-activities.updateOne({"id": req.params.id, "records.recordId":req.params.recordId},
+ models.activities.updateOne({"id": req.params.id, "records.recordId":req.params.recordId},
    {$unset:{"records.date":""}},{$unset:{"records.logged":""}})
  .then(function(activity){
   if(activity){
