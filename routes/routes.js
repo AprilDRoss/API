@@ -37,9 +37,9 @@ const activitySchema = new Schema({
   id: {type:String, required:true},
   url: String,
   records: [{
-    recordId: Number,
-    date: [String],
-    logged: [String],
+    recordId: {type:Number, required:true},
+    date: String,
+    logged: String,
   }],
 });
 
@@ -51,7 +51,6 @@ const userSchema = new Schema({
 //Activity is the collection name; mongoose will lowercase and pluralize it
 const activities = mongoose.model('activities', activitySchema);
 const users = mongoose.model('users', userSchema);
-
 
 
 //Get all activities
@@ -74,7 +73,7 @@ router.post('/api/activities', function(req, res){
     id:req.body.id,
     url:"//localhost:8080/api/activities/" + req.body.id,
     records: [{
-      record_id: req.body.recordId,
+      recordId: req.body.recordId,
       date: req.body.date,
       logged: req.body.logged
     }]
@@ -93,7 +92,7 @@ router.post('/api/activities', function(req, res){
 
 //GET activites by id (name)
 router.get('/api/activities/:id', function(req, res){
-  activities.findOne({"id":req.params.id}).then(function(newActivity){
+  activities.findOne({id:req.params.id}).then(function(newActivity){
     if (newActivity){
       res.setHeader('Content-Type','application/json');
       res.status(201).json(newActivity);
@@ -107,7 +106,7 @@ router.get('/api/activities/:id', function(req, res){
 
 //PUT to update a name
 router.put('/api/activities/:id', function(req, res){
-  activities.updateOne({"id":req.params.id},{$set:{"id":req.body.id}}).then(function(newActivity){
+  activities.updateOne({id:req.params.id},{$set:{"id":req.body.id}}).then(function(newActivity){
     if (newActivity){
       res.setHeader('Content-Type','application/json');
       res.status(201).json(newActivity);
@@ -122,7 +121,7 @@ router.put('/api/activities/:id', function(req, res){
 //
 //Delete an activity
 router.delete('/api/activities/:id', function(req, res){
-  activities.deleteOne({"id":req.params.id}).then(function(newActivity){
+  activities.deleteOne({id:req.params.id}).then(function(newActivity){
     if(newActivity){
       res.status(200).send("Successfully removed activity.");
     } else {
@@ -134,7 +133,7 @@ router.delete('/api/activities/:id', function(req, res){
 });
 
 // router.get('/api/activities/:id/:recordId', function(req, res){
-//   activities.find({"id":req.params.id, "recordId":req.params.recordId}).then(function(newActivity){
+//   activities.find({id:req.params.id, "records.recordId":req.params.recordId}).then(function(newActivity){
 //     if (newActivity){
 //       res.setHeader('Content-Type','application/json');
 //       res.status(201).json(newActivity);
@@ -147,8 +146,8 @@ router.delete('/api/activities/:id', function(req, res){
 // });
 
 //POST request to add stats and overide logged data
-router.post('/api/activities/:id/:recordId', function(req, res){
-  activities.updateMany({"id":req.params.id, "recordId":req.params.recordId},
+router.post('/api/activities/:id/:records', function(req, res){
+  activities.updateMany({id:req.params.id, "records.recordId":req.params.recordId},
        {$set:{"date":req.body.date}},
        {$set:{"logged":req.body.logged}}).then(function(newActivity){
     if (newActivity){
@@ -164,7 +163,8 @@ router.post('/api/activities/:id/:recordId', function(req, res){
 
 
 router.delete('/api/activities/:id/:stats/:recordId', function(req, res){
-activities.deleteOne({"id": req.params.id, "recordId":req.params.recordId})
+activities.updateOne({"id": req.params.id, "records.recordId":req.params.recordId},
+   {$unset:{"records.date":""}},{$unset:{"records.logged":""}})
  .then(function(activity){
   if(activity){
     res.status(200).send("Successfully removed activity.");
