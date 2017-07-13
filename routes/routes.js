@@ -10,7 +10,7 @@ const BasicStrategy = require('passport-http').BasicStrategy;
 const assert = require('assert');
 
 //authentication
-//router.use(passport.authenticate('basic', { session: false }));
+router.use(passport.authenticate('basic', { session: false }));
 
 
 //*****Fix this after you fix the models folder*******
@@ -21,16 +21,16 @@ const models = require("../models/activities.js");
  mongoose.connect("mongodb://localhost:27017/activitiesTracker");
 
 
-// passport.use(new BasicStrategy(
-//   function(username, password, done) {
-//     models.users.findOne({ "username":username, "password":password }, function (err, user) {
-//       if (err) { return done(err); }
-//       if (!user) { return done(null, false); }
-//       if (users.password! == password){ return done(null, false); }
-//       return done(null, user);
-//     });
-//   }
-// ));
+passport.use(new BasicStrategy(
+  function(username, password, done) {
+    models.users.findOne({ "username":username, "password":password }, function (err, user) {
+      if (err) { return done(err); }
+      if (!user) { return done(null, false); }
+      if (users.password == password){ return done(null, false); }
+      return done(null, user);
+    });
+  }
+));
 
 //applying authentication on the root
 // router.get('/api',
