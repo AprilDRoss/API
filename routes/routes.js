@@ -10,7 +10,7 @@ const BasicStrategy = require('passport-http').BasicStrategy;
 const assert = require('assert');
 
 //authentication
-router.use(passport.authenticate('basic', { session: false }));
+//router.use(passport.authenticate('basic', { session: false }));
 
 
 //*****Fix this after you fix the models folder*******
@@ -21,16 +21,16 @@ const models = require("../models/activities.js");
  mongoose.connect("mongodb://localhost:27017/activitiesTracker");
 
 
-passport.use(new BasicStrategy(
-  function(username, password, done) {
-    models.users.findOne({ "username":username, "password":password }, function (err, user) {
-      if (err) { return done(err); }
-      if (!user) { return done(null, false); }
-      if (users.password == password){ return done(null, false); }
-      return done(null, user);
-    });
-  }
-));
+// passport.use(new BasicStrategy(
+//   function(username, password, done) {
+//     models.users.findOne({ "username":username, "password":password }, function (err, user) {
+//       if (err) { return done(err); }
+//       if (!user) { return done(null, false); }
+//       if (users.password == password){ return done(null, false); }
+//       return done(null, user);
+//     });
+//   }
+// ));
 
 //applying authentication on the root
 // router.get('/api',
@@ -59,7 +59,7 @@ router.post('/api/activities', function(req, res){
     id:req.body.id,
     url:"//localhost:8080/api/activities/" + req.body.id,
     records: [{
-      recordId: req.body.recordId,
+      recordid: req.body.recordid,
       date: req.body.date,
       logged: req.body.logged
     }]
@@ -89,6 +89,19 @@ router.get('/api/activities/:id', function(req, res){
     res.status(400).send("Bad request. Please try again.")
   })
 });
+
+// router.get('/api/activities/:id', function(req, res){
+//   models.activities.find({id:req.params.id}).then(function(newActivity){
+//     if (newActivity){
+//       res.setHeader('Content-Type','application/json');
+//       res.status(201).json(newActivity);
+//     }else{
+//       res.status(403).send("No activity found, sorry");
+//     }
+//   }).catch(function(err){
+//     res.status(400).send("Bad request. Please try again.")
+//   })
+// });
 
 //PUT to update a name
 router.put('/api/activities/:id', function(req, res){
@@ -131,10 +144,10 @@ router.delete('/api/activities/:id', function(req, res){
 // });
 
 //POST request to add stats and overide logged data
-router.post('/api/activities/:id/:recordsId', function(req, res){
-  models.activities.updateMany({id:req.params.id, "records.recordId":req.params.recordId},
-       {$set:{"date":req.body.date}},
-       {$set:{"logged":req.body.logged}}).then(function(newActivity){
+router.post('/api/activities/:id/:recordsid', function(req, res){
+  models.activities.update({id:req.params.id, 'records.recordid':req.params.recordid},
+       {$set:{'records.$.date':req.body.date}},
+       {$set:{'records.$.logged':req.body.logged}}).then(function(newActivity){
     if (newActivity){
       res.setHeader('Content-Type','application/json');
       res.status(201).json(newActivity);
@@ -147,8 +160,8 @@ router.post('/api/activities/:id/:recordsId', function(req, res){
 });
 
 
-router.delete('/api/activities/:id/:stats/:recordId', function(req, res){
- models.activities.updateOne({"id": req.params.id, "records.recordId":req.params.recordId},
+router.delete('/api/activities/:id/records/:recordId', function(req, res){
+ models.activities.updateOne({"id": req.params.id, "records.recordid":req.params.recordid},
    {$unset:{"records.date":""}},{$unset:{"records.logged":""}})
  .then(function(activity){
   if(activity){
