@@ -57,12 +57,10 @@ router.get('/api/activities', function(req, res){
 router.post('/api/activities', function(req, res){
   let activity = ({
     id:req.body.id,
-    url:"//localhost:8080/api/activities/" + req.body.id,
-    records: [{
-      recordid: req.body.recordid,
-      date: req.body.date,
-      logged: req.body.logged
-    }]
+    url:"//localhost:8080/api/activities/" + req.body.url,
+    statId: req.body.statId,
+    statDate: req.body.statDate,
+    statLogged: req.body.statLogged
   });
   models.activities.create(activity).then(function(newActivity){
     if (newActivity){
@@ -77,21 +75,8 @@ router.post('/api/activities', function(req, res){
 });
 
 //GET activites by id (activity name)
-router.get('/api/activities/:id', function(req, res){
-  models.activities.findOne({id:req.params.id}).then(function(newActivity){
-    if (newActivity){
-      res.setHeader('Content-Type','application/json');
-      res.status(201).json(newActivity);
-    }else{
-      res.status(403).send("No activity found, sorry");
-    }
-  }).catch(function(err){
-    res.status(400).send("Bad request. Please try again.")
-  })
-});
-
 // router.get('/api/activities/:id', function(req, res){
-//   models.activities.find({id:req.params.id}).then(function(newActivity){
+//   models.activities.findOne({id:req.params.id}).then(function(newActivity){
 //     if (newActivity){
 //       res.setHeader('Content-Type','application/json');
 //       res.status(201).json(newActivity);
@@ -103,9 +88,22 @@ router.get('/api/activities/:id', function(req, res){
 //   })
 // });
 
+router.get('/api/activities/:id', function(req, res){
+  models.activities.find({id:req.params.id}).then(function(newActivity){
+    if (newActivity){
+      res.setHeader('Content-Type','application/json');
+      res.status(201).json(newActivity);
+    }else{
+      res.status(403).send("No activity found, sorry");
+    }
+  }).catch(function(err){
+    res.status(400).send("Bad request. Please try again.")
+  })
+});
+
 //PUT to update a name
 router.put('/api/activities/:id', function(req, res){
-  models.activities.updateOne({id:req.params.id},{$set:{"id":req.body.id}}).then(function(newActivity){
+  models.activities.updateOne({id:req.params.id},{$set:{id:req.body.id}}).then(function(newActivity){
     if (newActivity){
       res.setHeader('Content-Type','application/json');
       res.status(201).json(newActivity);
@@ -130,24 +128,11 @@ router.delete('/api/activities/:id', function(req, res){
   })
 });
 
-// router.get('/api/activities/:id/:recordId', function(req, res){
-//   activities.find({id:req.params.id, "records.recordId":req.params.recordId}).then(function(newActivity){
-//     if (newActivity){
-//       res.setHeader('Content-Type','application/json');
-//       res.status(201).json(newActivity);
-//     }else{
-//       res.status(403).send("No activity found, sorry");
-//     }
-//   }).catch(function(err){
-//     res.status(400).send("Bad request. Please try again.")
-//   })
-// });
-
 //POST request to add stats and overide logged data
-router.post('/api/activities/:id/:recordsid', function(req, res){
-  models.activities.update({id:req.params.id, 'records.recordid':req.params.recordid},
-       {$set:{'records.$.date':req.body.date}},
-       {$set:{'records.$.logged':req.body.logged}}).then(function(newActivity){
+router.post('/api/activities/:statid/stats', function(req, res){
+  models.activities.updateOne({id:req.params.id, 'statId':req.params.statId},
+       {$set:{statDate:req.body.statDate}},
+       {$set:{statLogged:req.body.statLogged}}).then(function(newActivity){
     if (newActivity){
       res.setHeader('Content-Type','application/json');
       res.status(201).json(newActivity);
@@ -160,7 +145,7 @@ router.post('/api/activities/:id/:recordsid', function(req, res){
 });
 
 
-router.delete('/api/activities/:id/records/:recordId', function(req, res){
+router.delete('/api/activities/:id/stats/:statId', function(req, res){
  models.activities.updateOne({"id": req.params.id, "records.recordid":req.params.recordid},
    {$unset:{"records.date":""}},{$unset:{"records.logged":""}})
  .then(function(activity){
