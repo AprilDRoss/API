@@ -129,8 +129,8 @@ router.delete('/api/activities/:id', function(req, res){
 });
 
 //POST request to add stats and overide logged data
-router.post('/api/activities/:statid/stats', function(req, res){
-  models.activities.updateOne({id:req.params.id, 'statId':req.params.statId},
+router.post('/api/activities/:statId', function(req, res){
+  models.activities.updateOne({id:req.params.id, statId:req.params.statId},
        {$set:{statDate:req.body.statDate}},
        {$set:{statLogged:req.body.statLogged}}).then(function(newActivity){
     if (newActivity){
