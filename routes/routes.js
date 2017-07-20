@@ -10,10 +10,10 @@ const BasicStrategy = require('passport-http').BasicStrategy;
 const assert = require('assert');
 
 //authentication
-//router.use(passport.authenticate('basic', { session: false }));
+router.use(passport.authenticate('basic', { session: false }));
 
 
-//*****Fix this after you fix the models folder*******
+
 const models = require("../models/activities.js");
 
 //mongoose connection
@@ -21,16 +21,16 @@ const models = require("../models/activities.js");
  mongoose.connect("mongodb://localhost:27017/activitiesTracker");
 
 
-// passport.use(new BasicStrategy(
-//   function(username, password, done) {
-//     models.users.findOne({ "username":username, "password":password }, function (err, user) {
-//       if (err) { return done(err); }
-//       if (!user) { return done(null, false); }
-//       if (users.password == password){ return done(null, false); }
-//       return done(null, user);
-//     });
-//   }
-// ));
+passport.use(new BasicStrategy(
+  function(username, password, done) {
+    models.users.findOne({ "username":username, "password":password }, function (err, user) {
+      if (err) { return done(err); }
+      if (!user) { return done(null, false); }
+      if (users.password == password){ return done(null, false); }
+      return done(null, user);
+    });
+  }
+));
 
 //applying authentication on the root
 // router.get('/api',
@@ -74,20 +74,6 @@ router.post('/api/activities', function(req, res){
   })
 });
 
-//GET activites by id (activity name)
-// router.get('/api/activities/:id', function(req, res){
-//   models.activities.findOne({id:req.params.id}).then(function(newActivity){
-//     if (newActivity){
-//       res.setHeader('Content-Type','application/json');
-//       res.status(201).json(newActivity);
-//     }else{
-//       res.status(403).send("No activity found, sorry");
-//     }
-//   }).catch(function(err){
-//     res.status(400).send("Bad request. Please try again.")
-//   })
-// });
-
 router.get('/api/activities/:id', function(req, res){
   models.activities.find({id:req.params.id}).then(function(newActivity){
     if (newActivity){
@@ -129,34 +115,31 @@ router.delete('/api/activities/:id', function(req, res){
 });
 
 //POST request to add stats and overide logged data
-router.post('/api/activities/:statId', function(req, res){
-  models.activities.updateOne({id:req.params.id, statId:req.params.statId},
-       {$set:{statDate:req.body.statDate}},
-       {$set:{statLogged:req.body.statLogged}}).then(function(newActivity){
-    if (newActivity){
-      res.setHeader('Content-Type','application/json');
-      res.status(201).json(newActivity);
-    }else{
-      res.status(403).send("No activity found, sorry");
-    }
-  }).catch(function(err){
-    res.status(400).send("Bad request. Please try again.")
-  })
+router.post('/api/activities/:id/stats', function(req, res){
+  var statId = req.params.id;
+  models.activities.findOne({id:statId}).then(function(newActivity){
+    newActivity.data.push({statDate:req.body.statDate, statLogged:req.body.statLogged})
+    newActivity.save().then(function(updated){
+      res.status(201);
+      res.setHeader('Content-Type','application/json')
+    })
+  });
 });
 
 
 router.delete('/api/activities/:id/stats/:statId', function(req, res){
- models.activities.updateOne({"id": req.params.id, "records.recordid":req.params.recordid},
-   {$unset:{"records.date":""}},{$unset:{"records.logged":""}})
- .then(function(activity){
-  if(activity){
-    res.status(200).send("Successfully removed activity.");
-  } else {
-    res.status(404).send("Activity not found.");
+var statId = req.params.statId;
+models.activities.findOne({id:req.params.id}).then(function(newActivity){
+  for (var i = 0; i < newActivity.data.length; i++){
+    console.log(newActivity.data[i]._id == statId);
+    if(newActivity.data[i]._id == statId){
+      newActivity.data.splice(i, 1);
+    }
   }
-}).catch(function(err) {
-  res.status(400).send("Bad request. Please try again.");
-})
+  newActivity.save().then(function(deleted){
+    res.json(deleted);
+    })
+  })
 });
 
 
